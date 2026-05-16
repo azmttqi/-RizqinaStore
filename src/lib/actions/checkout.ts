@@ -173,7 +173,7 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
       snapToken = transaction.token
 
       // Simpan snap token ke database untuk referensi nanti
-      const { error: tokenError } = await supabase
+      const { error: tokenError } = await adminSupabase
         .from('orders')
         .update({ midtrans_token: snapToken })
         .eq('id', order.id)
