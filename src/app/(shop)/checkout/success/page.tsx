@@ -80,7 +80,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   }
   const currentStatus = statusLabels[order.order_status] || statusLabels.pending
 
-  const isPendingMidtrans = order.payment_method === 'qris' && order.payment_status === 'pending'
+  const isPendingMidtrans = order.payment_method !== 'cod' && order.payment_status === 'pending'
 
   return (
     <div
@@ -199,6 +199,12 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Pembayaran</span>
               <span className={`badge ${order.payment_method === 'cod' ? 'badge-secondary' : 'badge-primary'}`} style={{ fontSize: '0.75rem' }}>
                 {order.payment_method === 'cod' ? 'COD' : 'Otomatis (Midtrans)'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Status Bayar</span>
+              <span className={`badge ${order.payment_status === 'paid' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.75rem' }}>
+                {order.payment_status === 'paid' ? 'Lunas' : 'Menunggu Pembayaran'}
               </span>
             </div>
             <div className="divider" style={{ margin: '0.25rem 0' }} />

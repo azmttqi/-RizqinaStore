@@ -194,39 +194,39 @@ export default async function MyOrdersPage() {
                     </p>
                   </div>
 
-                   <div style={{ display: 'flex', gap: '0.625rem' }}>
-                    {order.order_status === 'delivered' && (
-                      <Link
-                        href={`/orders/${order.id}/review`}
-                        className="btn btn-secondary btn-sm"
-                        style={{ background: 'var(--warning-light)', color: 'var(--warning)', borderColor: 'var(--warning)' }}
-                      >
-                        <Star size={14} fill="var(--warning)" />
-                        Beri Rating
-                      </Link>
-                    )}
-                    <Link
-                      href={`/checkout/success?order_id=${order.id}`}
-                      className="btn btn-secondary btn-sm"
-                    >
-                      Detail
-                    </Link>
                     {order.payment_method !== 'cod' && order.payment_status === 'pending' && order.midtrans_token && (
-                      <div style={{ scale: '0.85', transformOrigin: 'right' }}>
+                      <div style={{ width: '100%', marginBottom: '0.5rem' }}>
                         <PayNowButton snapToken={order.midtrans_token} />
                       </div>
                     )}
-                    <a
-                      href={`https://wa.me/${adminWA}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-primary btn-sm"
-                      style={{ background: '#25D366', borderColor: '#25D366' }}
-                    >
-                      <MessageCircle size={16} />
-                      Tanya Admin
-                    </a>
-                  </div>
+                    <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'flex-end', width: '100%' }}>
+                      {order.order_status === 'delivered' && (
+                        <Link
+                          href={`/orders/${order.id}/review`}
+                          className="btn btn-secondary btn-sm"
+                          style={{ background: 'var(--warning-light)', color: 'var(--warning)', borderColor: 'var(--warning)' }}
+                        >
+                          <Star size={14} fill="var(--warning)" />
+                          Beri Rating
+                        </Link>
+                      )}
+                      <Link
+                        href={`/checkout/success?order_id=${order.id}`}
+                        className="btn btn-secondary btn-sm"
+                      >
+                        Detail Pesanan
+                      </Link>
+                      <a
+                        href={`https://wa.me/${adminWA}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ color: '#25D366' }}
+                      >
+                        <MessageCircle size={14} />
+                        Chat Admin
+                      </a>
+                    </div>
                 </div>
               </div>
             )
