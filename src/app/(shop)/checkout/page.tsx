@@ -72,62 +72,6 @@ export default function CheckoutPage() {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const [showSnap, setShowSnap] = useState(false)
-  const [snapToken, setSnapToken] = useState<string | null>(null)
-
-  // Efek untuk memicu Snap Embed saat container sudah siap di DOM
-  useEffect(() => {
-    let retryCount = 0;
-    const maxRetries = 10;
-
-    const initSnap = () => {
-      if (showSnap && snapToken && (window as any).snap) {
-        const container = document.getElementById('snap-container');
-        if (container) {
-          try {
-            ;(window as any).snap.embed(snapToken, {
-              embedId: 'snap-container',
-              onSuccess: (res: any) => {
-                toast.success('Pembayaran Berhasil!')
-                clearSelectedItems()
-                router.push(`/checkout/success?order_id=${res.order_id}`)
-              },
-              onPending: (res: any) => {
-                toast.info('Menunggu Pembayaran...')
-                clearSelectedItems()
-                router.push(`/checkout/success?order_id=${res.order_id}`)
-              },
-              onError: (res: any) => {
-                toast.error('Pembayaran Gagal!')
-                setShowSnap(false)
-              },
-              onClose: () => {
-                setShowSnap(false)
-                toast.info('Silakan pilih metode pembayaran lain atau coba lagi.')
-              }
-            })
-          } catch (err) {
-            console.error('Snap embed error:', err);
-            if (retryCount < maxRetries) {
-              retryCount++;
-              setTimeout(initSnap, 500);
-            }
-          }
-        } else if (retryCount < maxRetries) {
-          retryCount++;
-          setTimeout(initSnap, 500);
-        }
-      } else if (showSnap && retryCount < maxRetries) {
-        retryCount++;
-        setTimeout(initSnap, 500);
-      }
-    };
-
-    if (showSnap) {
-      initSnap();
-    }
-  }, [showSnap, snapToken, router, clearSelectedItems])
-
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault()
 
@@ -162,18 +106,11 @@ export default function CheckoutPage() {
         return
       }
 
-      // JIKA PILIH QRIS/MIDTRANS
-      if (result.snapToken && (window as any).snap) {
-        setSnapToken(result.snapToken)
-        setShowSnap(true)
-        setLoading(false)
-        return
-      }
-
-      // JIKA COD
+      // Setelah pesanan berhasil dibuat, redirect ke halaman success
       setIsSuccess(true)
       clearSelectedItems()
       toast.success('Pesanan berhasil dibuat!')
+      router.push(`/checkout/success?order_id=${result.orderId}`)
       router.push(`/checkout/success?order_id=${result.orderId}`)
     } catch (err) {
       console.error(err)
@@ -197,24 +134,6 @@ export default function CheckoutPage() {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
-      {showSnap ? (
-        <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto', width: '100%' }}>
-          <div className="card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pilih Metode Pembayaran</h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-              Silakan selesaikan pembayaran Anda di bawah ini.
-            </p>
-            <div id="snap-container" style={{ minHeight: '600px', width: '100%', background: 'var(--surface-1)', borderRadius: '12px' }}></div>
-            <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border)', paddingTop: '1.5rem' }}>
-              <button onClick={() => setShowSnap(false)} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
-                <ArrowLeft size={18} />
-                Kembali & Ubah Pesanan
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <Link
@@ -532,8 +451,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-        </>
-      )}
     </div>
   )
 }
