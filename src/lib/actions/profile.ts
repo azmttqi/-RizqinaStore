@@ -31,7 +31,7 @@ export async function updateProfile(formData: FormData) {
 
   if (error) throw new Error(error.message)
 
+
   revalidatePath('/settings')
   revalidatePath('/checkout')
-  return { success: true }
 }
