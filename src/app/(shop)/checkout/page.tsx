@@ -106,11 +106,41 @@ export default function CheckoutPage() {
         return
       }
 
-      // Setelah pesanan berhasil dibuat, redirect ke halaman success
+      // Jika pesanan menggunakan Midtrans (ada snapToken)
+      if (result.snapToken && (window as any).snap) {
+        ;(window as any).snap.pay(result.snapToken, {
+          onSuccess: (res: any) => {
+            toast.success('Pembayaran Berhasil!')
+            setIsSuccess(true)
+            clearSelectedItems()
+            router.push(`/checkout/success?order_id=${result.orderId}`)
+          },
+          onPending: (res: any) => {
+            toast.info('Menunggu Pembayaran...')
+            setIsSuccess(true)
+            clearSelectedItems()
+            router.push(`/checkout/success?order_id=${result.orderId}`)
+          },
+          onError: (res: any) => {
+            toast.error('Pembayaran Gagal!')
+            setIsSuccess(true)
+            clearSelectedItems()
+            router.push(`/checkout/success?order_id=${result.orderId}`)
+          },
+          onClose: () => {
+            toast.info('Anda belum menyelesaikan pembayaran.')
+            setIsSuccess(true)
+            clearSelectedItems()
+            router.push(`/checkout/success?order_id=${result.orderId}`)
+          }
+        })
+        return
+      }
+
+      // Jika COD atau tidak ada snapToken, langsung redirect
       setIsSuccess(true)
       clearSelectedItems()
       toast.success('Pesanan berhasil dibuat!')
-      router.push(`/checkout/success?order_id=${result.orderId}`)
       router.push(`/checkout/success?order_id=${result.orderId}`)
     } catch (err) {
       console.error(err)
