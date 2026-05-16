@@ -233,9 +233,27 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         )}
 
         {/* Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
           {isPendingMidtrans && order.midtrans_token && (
-            <PayNowButton snapToken={order.midtrans_token} />
+            <div 
+              style={{ 
+                padding: '1.25rem', 
+                background: 'rgba(var(--primary-rgb), 0.05)', 
+                borderRadius: '16px', 
+                border: '1px dashed var(--primary)',
+                marginBottom: '0.5rem',
+                textAlign: 'center'
+              }}
+              className="animate-pulse-subtle"
+            >
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--primary)', marginBottom: '0.75rem' }}>
+                Lanjutkan Pembayaran Anda:
+              </p>
+              <PayNowButton snapToken={order.midtrans_token} />
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
+                Klik tombol di atas untuk melihat Kode VA / QRIS
+              </p>
+            </div>
           )}
 
           <a
@@ -247,7 +265,9 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               background: '#25D366',
               color: 'white',
               justifyContent: 'center',
-              fontSize: '0.95rem',
+              fontSize: '1rem',
+              fontWeight: 700,
+              boxShadow: '0 4px 12px rgba(37, 211, 102, 0.2)'
             }}
           >
             <MessageCircle size={20} />

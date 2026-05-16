@@ -152,6 +152,11 @@ h1, h2, h3, h4, h5, h6 {
   100% { background-position: 200% 0; }
 }
 
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(0.98); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out forwards;
 }
@@ -162,6 +167,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
 }
 
 /* ===== SKELETON LOADING ===== */

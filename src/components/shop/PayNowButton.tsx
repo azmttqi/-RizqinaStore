@@ -43,10 +43,20 @@ export default function PayNowButton({ snapToken }: PayNowButtonProps) {
       onClick={handlePay}
       disabled={loading}
       className="btn btn-primary btn-lg"
-      style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem' }}
+      style={{ 
+        width: '100%', 
+        justifyContent: 'center', 
+        background: 'linear-gradient(135deg, var(--primary) 0%, #7C3AED 100%)',
+        border: 'none',
+        boxShadow: '0 8px 16px -4px rgba(var(--primary-rgb), 0.3)',
+        fontWeight: 800,
+        letterSpacing: '0.01em',
+        textTransform: 'uppercase',
+        fontSize: '0.9rem'
+      }}
     >
-      <CheckCircle size={20} />
-      {loading ? 'Membuka Pembayaran...' : 'Bayar Sekarang'}
+      <CheckCircle size={18} />
+      {loading ? 'Membuka Jendela...' : 'Bayar Sekarang'}
     </button>
   )
 }

@@ -27,17 +27,25 @@ export default async function AdminOrdersPage(props: { searchParams: Promise<{ s
     `)
     .order('created_at', { ascending: false })
 
+  // Filter pesanan yang valid untuk diproses admin:
+  // 1. Semua pesanan COD (karena dibayar nanti)
+  // 2. Pesanan otomatis (qris) yang statusnya sudah 'paid' (Lunas)
+  const validOrders = allOrders?.filter(o => {
+    if (o.payment_method === 'cod') return true
+    return o.payment_status === 'paid'
+  }) || []
+
   const stats = {
-    total: allOrders?.length || 0,
-    pending: allOrders?.filter((o) => o.order_status === 'pending').length || 0,
-    confirmed: allOrders?.filter((o) => o.order_status === 'confirmed').length || 0,
-    shipped: allOrders?.filter((o) => o.order_status === 'shipped').length || 0,
+    total: validOrders.length,
+    pending: validOrders.filter((o) => o.order_status === 'pending').length,
+    confirmed: validOrders.filter((o) => o.order_status === 'confirmed').length,
+    shipped: validOrders.filter((o) => o.order_status === 'shipped').length,
   }
 
   // Filter orders for display based on the selected status
   const orders = statusFilter === 'all' 
-    ? allOrders 
-    : allOrders?.filter(o => o.order_status === statusFilter) || []
+    ? validOrders 
+    : validOrders.filter(o => o.order_status === statusFilter)
 
   const statusConfig: Record<string, { label: string; icon: React.ReactNode; color: string; bg: string; next?: string; nextLabel?: string }> = {
     pending: {
