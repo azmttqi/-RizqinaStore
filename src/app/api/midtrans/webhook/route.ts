@@ -47,7 +47,44 @@ export async function POST(req: Request) {
       orderStatus = 'cancelled'
     }
 
-    // 4. Update Database
+    // 4. Cek status order saat ini di DB untuk mencegah duplikasi pengembalian stok
+    const { data: currentOrder, error: fetchError } = await supabase
+      .from('orders')
+      .select('order_status')
+      .eq('id', order_id)
+      .single()
+
+    if (fetchError || !currentOrder) {
+      return NextResponse.json({ message: 'Order not found' }, { status: 404 })
+    }
+
+    // 5. Kembalikan stok JIKA status berubah menjadi 'cancelled'
+    if (orderStatus === 'cancelled' && currentOrder.order_status !== 'cancelled') {
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select('product_id, quantity')
+        .eq('order_id', order_id)
+
+      if (orderItems && orderItems.length > 0) {
+        for (const item of orderItems) {
+          // Ambil stok terbaru dan tambahkan kembali
+          const { data: product } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.product_id)
+            .single()
+
+          if (product) {
+            await supabase
+              .from('products')
+              .update({ stock: product.stock + item.quantity })
+              .eq('id', item.product_id)
+          }
+        }
+      }
+    }
+
+    // 6. Update Database Orders
     const { error } = await supabase
       .from('orders')
       .update({
