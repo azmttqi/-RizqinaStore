@@ -18,6 +18,7 @@ export default function PayNowButton({ snapToken }: PayNowButtonProps) {
     }
 
     setLoading(true)
+    const currentScrollY = window.scrollY
     
     ;(window as any).snap.pay(snapToken, {
       onSuccess: () => {
@@ -27,13 +28,16 @@ export default function PayNowButton({ snapToken }: PayNowButtonProps) {
       onPending: () => {
         toast.info('Menunggu Pembayaran...')
         setLoading(false)
+        setTimeout(() => window.scrollTo(0, currentScrollY), 50)
       },
       onError: () => {
         toast.error('Pembayaran Gagal!')
         setLoading(false)
+        setTimeout(() => window.scrollTo(0, currentScrollY), 50)
       },
       onClose: () => {
         setLoading(false)
+        setTimeout(() => window.scrollTo(0, currentScrollY), 50)
       }
     })
   }

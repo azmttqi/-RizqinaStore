@@ -121,6 +121,11 @@ export default function CheckoutPage() {
         
         // Beri waktu sejenak agar DOM merender div #snap-container
         setTimeout(() => {
+          const container = document.getElementById('snap-container')
+          if (container) {
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+
           ;(window as any).snap.embed(result.snapToken, {
             embedId: 'snap-container',
             onSuccess: (res: any) => {
