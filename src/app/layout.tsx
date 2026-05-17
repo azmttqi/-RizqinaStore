@@ -40,8 +40,8 @@ export default function RootLayout({
             __html: `
               try {
                 var theme = localStorage.getItem('umkm-theme');
-                if (theme === 'elderly') {
-                  document.documentElement.setAttribute('data-theme', 'elderly');
+                if (theme === 'dark') {
+                  document.documentElement.setAttribute('data-theme', 'dark');
                 }
               } catch (e) {}
             `,

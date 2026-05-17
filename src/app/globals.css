@@ -2,38 +2,6 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0A0A0B;
-  --surface: #111113;
-  --surface-2: #1A1A1F;
-  --card: #1E1E24;
-  --card-hover: #24242C;
-  --border: #2A2A35;
-  --border-subtle: #1F1F28;
-  --primary: #6C63FF;
-  --primary-hover: #5B53EE;
-  --primary-light: rgba(108, 99, 255, 0.15);
-  --secondary: #FF6584;
-  --secondary-light: rgba(255, 101, 132, 0.15);
-  --success: #10B981;
-  --success-light: rgba(16, 185, 129, 0.15);
-  --warning: #F59E0B;
-  --warning-light: rgba(245, 158, 11, 0.15);
-  --danger: #EF4444;
-  --danger-light: rgba(239, 68, 68, 0.15);
-  --text-primary: #F5F5F7;
-  --text-secondary: #A1A1AA;
-  --text-muted: #52525B;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.6);
-  --glow-primary: 0 0 40px rgba(108, 99, 255, 0.3);
-  --navbar-bg: rgba(10, 10, 11, 0.85);
-}
-
-[data-theme="elderly"] {
   --background: #F8F9FA;
   --surface: #FFFFFF;
   --surface-2: #F1F3F5;
@@ -55,10 +23,44 @@
   --text-primary: #121212; /* High contrast almost black */
   --text-secondary: #333333; /* Dark gray */
   --text-muted: #555555; /* Medium gray */
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --glow-primary: 0 0 20px rgba(0, 86, 179, 0.2);
   --navbar-bg: rgba(255, 255, 255, 0.85);
+  --glass-bg: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] {
+  --background: #0A0A0B;
+  --surface: #111113;
+  --surface-2: #1A1A1F;
+  --card: #1E1E24;
+  --card-hover: #24242C;
+  --border: #2A2A35;
+  --border-subtle: #1F1F28;
+  --primary: #6C63FF;
+  --primary-hover: #5B53EE;
+  --primary-light: rgba(108, 99, 255, 0.15);
+  --secondary: #FF6584;
+  --secondary-light: rgba(255, 101, 132, 0.15);
+  --success: #10B981;
+  --success-light: rgba(16, 185, 129, 0.15);
+  --warning: #F59E0B;
+  --warning-light: rgba(245, 158, 11, 0.15);
+  --danger: #EF4444;
+  --danger-light: rgba(239, 68, 68, 0.15);
+  --text-primary: #F5F5F7;
+  --text-secondary: #A1A1AA;
+  --text-muted: #52525B;
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 48px rgba(0, 0, 0, 0.6);
+  --glow-primary: 0 0 40px rgba(108, 99, 255, 0.3);
+  --navbar-bg: rgba(10, 10, 11, 0.85);
+  --glass-bg: rgba(30, 30, 36, 0.8);
 }
 
 * {
@@ -104,7 +106,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* ===== GLASS CARD ===== */
 .glass-card {
-  background: rgba(30, 30, 36, 0.8);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
