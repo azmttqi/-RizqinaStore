@@ -20,6 +20,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [showEmbed, setShowEmbed] = useState(false)
+  const [paymentSubMethod, setPaymentSubMethod] = useState<string>('')
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({})
   
   const selectedItems = getSelectedItems()
@@ -89,6 +90,11 @@ export default function CheckoutPage() {
       return
     }
 
+    if (paymentMethod === 'qris' && !paymentSubMethod) {
+      toast.error('Silakan pilih Bank atau E-Wallet terlebih dahulu.')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -97,6 +103,7 @@ export default function CheckoutPage() {
         consumerAddress: form.consumerAddress.trim(),
         consumerWhatsapp: form.consumerWhatsapp.trim(),
         paymentMethod: paymentMethod,
+        paymentSubMethod: paymentMethod === 'qris' ? paymentSubMethod : undefined,
         notes: form.notes.trim() || undefined,
         items: selectedItems,
       })
@@ -309,11 +316,50 @@ export default function CheckoutPage() {
                 {paymentMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />}
               </div>
               <div>
-                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>Transfer / QRIS</p>
+                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>Transfer / QRIS / E-Wallet</p>
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Otomatis (Midtrans)</p>
               </div>
             </div>
           </div>
+
+          {/* Sub-metode Pembayaran Midtrans */}
+          {paymentMethod === 'qris' && (
+            <div className="animate-fade-in" style={{ marginTop: '1rem', padding: '1.25rem', background: 'var(--surface-1)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+              <p style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '1rem' }}>Pilih Metode Pembayaran Otomatis</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem' }}>
+                {[
+                  { id: 'bca_va', label: 'BCA Virtual Account' },
+                  { id: 'mandiri_va', label: 'Mandiri Virtual Account' },
+                  { id: 'bni_va', label: 'BNI Virtual Account' },
+                  { id: 'bri_va', label: 'BRI Virtual Account' },
+                  { id: 'gopay', label: 'GoPay' },
+                  { id: 'shopeepay', label: 'ShopeePay' },
+                  { id: 'qris', label: 'QRIS (Semua E-Wallet)' },
+                ].map((method) => (
+                  <div
+                    key={method.id}
+                    onClick={() => setPaymentSubMethod(method.id)}
+                    style={{
+                      padding: '0.875rem',
+                      border: paymentSubMethod === method.id ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                      borderRadius: '8px',
+                      background: paymentSubMethod === method.id ? 'rgba(var(--primary-rgb), 0.05)' : 'var(--card)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `1.5px solid ${paymentSubMethod === method.id ? 'var(--primary)' : 'var(--text-muted)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {paymentSubMethod === method.id && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />}
+                    </div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: paymentSubMethod === method.id ? 600 : 400 }}>{method.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 4. Rincian Pembayaran / Midtrans Embed */}

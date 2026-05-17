@@ -9,6 +9,7 @@ interface CheckoutData {
   consumerAddress: string
   consumerWhatsapp: string
   paymentMethod: 'cod' | 'qris'
+  paymentSubMethod?: string
   notes?: string
   items: CartItem[]
 }
@@ -167,6 +168,7 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
           quantity: item.quantity,
           name: item.product.name.slice(0, 50),
         })),
+        enabled_payments: data.paymentSubMethod ? [data.paymentSubMethod] : undefined,
       }
 
       const transaction = await snap.createTransaction(parameter)
