@@ -77,6 +77,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     confirmed: { label: 'Dikonfirmasi', color: 'var(--success)', bg: 'var(--success-light)' },
     shipped: { label: 'Dikirim', color: 'var(--primary)', bg: 'var(--primary-light)' },
     delivered: { label: 'Terkirim', color: 'var(--success)', bg: 'var(--success-light)' },
+    cancelled: { label: 'Dibatalkan', color: 'var(--danger)', bg: 'var(--danger-light)' },
   }
   const currentStatus = statusLabels[order.order_status] || statusLabels.pending
 
@@ -203,8 +204,12 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Status Bayar</span>
-              <span className={`badge ${order.payment_status === 'paid' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.75rem' }}>
-                {order.payment_status === 'paid' ? 'Lunas' : 'Menunggu Pembayaran'}
+              <span className="badge" style={{ 
+                fontSize: '0.75rem', 
+                background: order.payment_status === 'paid' ? 'var(--success-light)' : order.payment_status === 'failed' ? 'var(--danger-light)' : 'var(--warning-light)',
+                color: order.payment_status === 'paid' ? 'var(--success)' : order.payment_status === 'failed' ? 'var(--danger)' : 'var(--warning)'
+              }}>
+                {order.payment_status === 'paid' ? 'Lunas' : order.payment_status === 'failed' ? 'Gagal / Kadaluarsa' : 'Menunggu Pembayaran'}
               </span>
             </div>
             <div className="divider" style={{ margin: '0.25rem 0' }} />
@@ -240,7 +245,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
         {/* Actions */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
-          {isPendingMidtrans && order.midtrans_token && (
+          {isPendingMidtrans && order.midtrans_token && order.payment_status !== 'failed' && order.order_status !== 'cancelled' && (
             <div 
               style={{ 
                 padding: '1.25rem', 
