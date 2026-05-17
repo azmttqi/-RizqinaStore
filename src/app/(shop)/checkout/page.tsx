@@ -18,10 +18,11 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { items, getSelectedItems, getTotalPrice, clearSelectedItems } = useCartStore()
   const [loading, setLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [showEmbed, setShowEmbed] = useState(false)
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({})
   
   const selectedItems = getSelectedItems()
-  const [isSuccess, setIsSuccess] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
   const [form, setForm] = useState({
@@ -108,32 +109,33 @@ export default function CheckoutPage() {
 
       // Jika pesanan menggunakan Midtrans (ada snapToken)
       if (result.snapToken && (window as any).snap) {
-        ;(window as any).snap.pay(result.snapToken, {
-          onSuccess: (res: any) => {
-            toast.success('Pembayaran Berhasil!')
-            setIsSuccess(true)
-            clearSelectedItems()
-            router.push(`/checkout/success?order_id=${result.orderId}`)
-          },
-          onPending: (res: any) => {
-            toast.info('Menunggu Pembayaran...')
-            setIsSuccess(true)
-            clearSelectedItems()
-            router.push(`/checkout/success?order_id=${result.orderId}`)
-          },
-          onError: (res: any) => {
-            toast.error('Pembayaran Gagal!')
-            setIsSuccess(true)
-            clearSelectedItems()
-            router.push(`/checkout/success?order_id=${result.orderId}`)
-          },
-          onClose: () => {
-            toast.info('Anda belum menyelesaikan pembayaran.')
-            setIsSuccess(true)
-            clearSelectedItems()
-            router.push(`/checkout/success?order_id=${result.orderId}`)
-          }
-        })
+        setShowEmbed(true)
+        setLoading(false)
+        
+        // Beri waktu sejenak agar DOM merender div #snap-container
+        setTimeout(() => {
+          ;(window as any).snap.embed(result.snapToken, {
+            embedId: 'snap-container',
+            onSuccess: (res: any) => {
+              toast.success('Pembayaran Berhasil!')
+              setIsSuccess(true)
+              clearSelectedItems()
+              router.push(`/checkout/success?order_id=${result.orderId}`)
+            },
+            onPending: (res: any) => {
+              toast.info('Menunggu Pembayaran...')
+              setIsSuccess(true)
+              clearSelectedItems()
+              router.push(`/checkout/success?order_id=${result.orderId}`)
+            },
+            onError: (res: any) => {
+              toast.error('Pembayaran Gagal!')
+              setIsSuccess(true)
+              clearSelectedItems()
+              router.push(`/checkout/success?order_id=${result.orderId}`)
+            }
+          })
+        }, 100)
         return
       }
 
@@ -314,45 +316,54 @@ export default function CheckoutPage() {
           </div>
         </div>
 
-        {/* 4. Rincian Pembayaran & Submit */}
-        <div className="card" style={{ padding: '1.5rem', background: 'var(--surface-2)', marginTop: '0.5rem', border: '1px solid var(--border)', borderRadius: '12px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Subtotal Produk</span>
-              <span>{formatRupiah(totalPrice)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Subtotal Pengiriman</span>
-              <span style={{ color: 'var(--success)' }}>Gratis (COD)</span>
-            </div>
-            <div className="divider" style={{ margin: '0.5rem 0' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontWeight: 600 }}>Total Pembayaran</span>
-              <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1.5rem', fontFamily: 'Outfit, sans-serif' }}>
-                {formatRupiah(totalPrice)}
-              </span>
-            </div>
+        {/* 4. Rincian Pembayaran / Midtrans Embed */}
+        {showEmbed ? (
+          <div className="card animate-fade-in" style={{ padding: '1.5rem', background: 'var(--surface-2)', marginTop: '0.5rem', border: '1px solid var(--border)', borderRadius: '12px' }}>
+            <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', fontWeight: 600, fontSize: '1.1rem' }}>
+              Pilih Pembayaran Anda
+            </h3>
+            <div id="snap-container" style={{ width: '100%', minHeight: '500px', borderRadius: '8px', overflow: 'hidden' }}></div>
           </div>
+        ) : (
+          <div className="card" style={{ padding: '1.5rem', background: 'var(--surface-2)', marginTop: '0.5rem', border: '1px solid var(--border)', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Subtotal Produk</span>
+                <span>{formatRupiah(totalPrice)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                <span style={{ color: 'var(--text-secondary)' }}>Subtotal Pengiriman</span>
+                <span style={{ color: 'var(--success)' }}>Gratis (COD)</span>
+              </div>
+              <div className="divider" style={{ margin: '0.5rem 0' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 600 }}>Total Pembayaran</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1.5rem', fontFamily: 'Outfit, sans-serif' }}>
+                  {formatRupiah(totalPrice)}
+                </span>
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-lg"
-            disabled={loading}
-            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', fontWeight: 700 }}
-          >
-            {loading ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
-                <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.3" />
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                </svg>
-                Memproses Pesanan...
-              </span>
-            ) : (
-              paymentMethod === 'cod' ? 'Buat Pesanan Sekarang' : 'Buat Pesanan & Bayar'
-            )}
-          </button>
-        </div>
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg"
+              disabled={loading}
+              style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', fontWeight: 700 }}
+            >
+              {loading ? (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                  <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.3" />
+                    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                  </svg>
+                  Memproses Pesanan...
+                </span>
+              ) : (
+                paymentMethod === 'cod' ? 'Buat Pesanan Sekarang' : 'Buat Pesanan & Bayar'
+              )}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   )
