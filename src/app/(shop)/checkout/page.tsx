@@ -329,12 +329,12 @@ export default function CheckoutPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.75rem' }}>
                 {[
                   { id: 'bca_va', label: 'BCA Virtual Account' },
-                  { id: 'mandiri_va', label: 'Mandiri Virtual Account' },
+                  { id: 'echannel', label: 'Mandiri Virtual Account' },
                   { id: 'bni_va', label: 'BNI Virtual Account' },
                   { id: 'bri_va', label: 'BRI Virtual Account' },
                   { id: 'gopay', label: 'GoPay' },
                   { id: 'shopeepay', label: 'ShopeePay' },
-                  { id: 'qris', label: 'QRIS (Semua E-Wallet)' },
+                  { id: 'other_qris', label: 'QRIS (Semua E-Wallet)' },
                 ].map((method) => (
                   <div
                     key={method.id}
