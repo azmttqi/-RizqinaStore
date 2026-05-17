@@ -152,6 +152,8 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
     try {
       const { snap } = await import('@/lib/midtrans')
       
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rizqina-store.vercel.app'
+      
       const parameter = {
         transaction_details: {
           order_id: order.id,
@@ -169,6 +171,11 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
           name: item.product.name.slice(0, 50),
         })),
         enabled_payments: data.paymentSubMethod ? [data.paymentSubMethod] : undefined,
+        callbacks: {
+          finish: `${baseUrl}/orders`,
+          error: `${baseUrl}/orders`,
+          unfinish: `${baseUrl}/orders`
+        }
       }
 
       const transaction = await snap.createTransaction(parameter)
