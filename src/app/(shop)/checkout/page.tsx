@@ -183,304 +183,177 @@ export default function CheckoutPage() {
         </p>
       </div>
 
-      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }} className="flex-col md:flex-row">
-        {/* Left: Form */}
-        <form id="checkout-form" onSubmit={handleCheckout} style={{ flex: '1 1 0%', display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
-          {/* Info Konsumen */}
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <h2
-              style={{
-                fontSize: '1rem', fontWeight: 600, marginBottom: '1.25rem',
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-              }}
-            >
-              <User size={18} color="var(--primary)" />
-              Informasi Penerima
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* Form Container (Satu Kolom ala Shopee) */}
+      <form id="checkout-form" onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+        
+        {/* 1. Alamat Pengiriman & Info Konsumen */}
+        <div className="card" style={{ padding: '1.5rem', borderTop: '4px solid var(--primary)' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
+            <MapPin size={20} />
+            Alamat Pengiriman
+          </h2>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
               <div className="form-group">
                 <label htmlFor="consumerName">Nama Lengkap *</label>
                 <input
-                  id="consumerName"
-                  name="consumerName"
-                  type="text"
-                  className="input"
-                  placeholder="Masukkan nama lengkap"
-                  value={form.consumerName}
-                  onChange={handleChange}
-                  required
+                  id="consumerName" name="consumerName" type="text" className="input"
+                  placeholder="Nama Penerima" value={form.consumerName} onChange={handleChange} required
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="consumerWhatsapp">Nomor WhatsApp *</label>
                 <div style={{ position: 'relative' }}>
-                  <Phone
-                    size={16}
-                    style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }}
-                  />
+                  <Phone size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
-                    id="consumerWhatsapp"
-                    name="consumerWhatsapp"
-                    type="tel"
-                    className="input"
-                    placeholder="08xxxxxxxxxx"
-                    value={form.consumerWhatsapp}
-                    onChange={handleChange}
-                    required
+                    id="consumerWhatsapp" name="consumerWhatsapp" type="tel" className="input"
+                    placeholder="08xxxxxxxxxx" value={form.consumerWhatsapp} onChange={handleChange} required
                     style={{ paddingLeft: '2.5rem' }}
                   />
                 </div>
               </div>
             </div>
+
+            <div className="form-group">
+              <label htmlFor="consumerAddress">Alamat Lengkap *</label>
+              <textarea
+                id="consumerAddress" name="consumerAddress" className="input"
+                placeholder="Jl. Contoh No. 1, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi"
+                value={form.consumerAddress} onChange={handleChange} required rows={2}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Produk Dipesan */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ShoppingBag size={18} />
+            Produk Dipesan
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {selectedItems.map((item) => (
+              <div key={item.product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px dashed var(--border)' }}>
+                <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'var(--surface-2)', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+                  {item.product.image_url && !imgErrors[item.product.id] ? (
+                    <Image
+                      src={item.product.image_url} alt={item.product.name} fill style={{ objectFit: 'cover' }}
+                      sizes="60px" onError={() => setImgErrors(prev => ({ ...prev, [item.product.id]: true }))}
+                    />
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                      <ImageOff size={16} strokeWidth={1.5} />
+                    </div>
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>{item.product.name}</p>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{formatRupiah(item.product.price)}</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>x{item.quantity}</p>
+                  <p style={{ fontSize: '0.95rem', fontWeight: 600, marginTop: '0.25rem' }}>{formatRupiah(item.product.price * item.quantity)}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Alamat */}
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <h2
+          <div className="form-group" style={{ marginTop: '1rem' }}>
+            <label htmlFor="notes">Catatan Pesanan (opsional)</label>
+            <input
+              id="notes" name="notes" className="input" type="text"
+              placeholder="Silakan tinggalkan pesan..."
+              value={form.notes} onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        {/* 3. Metode Pembayaran */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Truck size={18} />
+            Metode Pembayaran
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem' }}>
+            <div
+              onClick={() => setPaymentMethod('cod')}
               style={{
-                fontSize: '1rem', fontWeight: 600, marginBottom: '1.25rem',
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem',
+                background: paymentMethod === 'cod' ? 'rgba(var(--primary-rgb), 0.08)' : 'var(--card)',
+                border: paymentMethod === 'cod' ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s'
               }}
             >
-              <MapPin size={18} color="var(--primary)" />
-              Alamat Pengiriman
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label htmlFor="consumerAddress">Alamat Lengkap *</label>
-                <textarea
-                  id="consumerAddress"
-                  name="consumerAddress"
-                  className="input"
-                  placeholder="Jl. Contoh No. 1, RT/RW, Kelurahan, Kecamatan, Kota, Provinsi"
-                  value={form.consumerAddress}
-                  onChange={handleChange}
-                  required
-                  rows={3}
-                />
+              <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `1.5px solid ${paymentMethod === 'cod' ? 'var(--primary)' : 'var(--text-muted)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {paymentMethod === 'cod' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />}
               </div>
+              <div>
+                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>COD (Bayar di Tempat)</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Bayar saat barang sampai</p>
+              </div>
+            </div>
 
-              <div className="form-group">
-                <label htmlFor="notes">
-                  Catatan{' '}
-                  <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opsional)</span>
-                </label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  className="input"
-                  placeholder="Catatan tambahan untuk penjual..."
-                  value={form.notes}
-                  onChange={handleChange}
-                  rows={2}
-                />
+            <div
+              onClick={() => setPaymentMethod('qris')}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem',
+                background: paymentMethod === 'qris' ? 'rgba(var(--primary-rgb), 0.08)' : 'var(--card)',
+                border: paymentMethod === 'qris' ? '1.5px solid var(--primary)' : '1px solid var(--border)',
+                borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: `1.5px solid ${paymentMethod === 'qris' ? 'var(--primary)' : 'var(--text-muted)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {paymentMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary)' }} />}
+              </div>
+              <div>
+                <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>Transfer / QRIS</p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Otomatis (Midtrans)</p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Metode Pembayaran */}
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <h2
-              style={{
-                fontSize: '1rem', fontWeight: 600, marginBottom: '1.25rem',
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-              }}
-            >
-              <Truck size={18} color="var(--primary)" />
-              Metode Pembayaran
-            </h2>
-
-            {/* Metode Pembayaran */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div
-                onClick={() => setPaymentMethod('cod')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '1rem',
-                  padding: '1.25rem',
-                  background: paymentMethod === 'cod' ? 'rgba(var(--primary-rgb), 0.08)' : 'var(--card)',
-                  border: paymentMethod === 'cod' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                  borderRadius: '16px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative'
-                }}
-              >
-                <div
-                  style={{
-                    width: '48px', height: '48px', borderRadius: '12px',
-                    background: paymentMethod === 'cod' ? 'var(--primary)' : 'var(--surface-2)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: paymentMethod === 'cod' ? 'white' : 'var(--text-muted)',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <Truck size={24} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.125rem' }}>COD (Bayar di Tempat)</p>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    Bayar tunai aman saat barang sampai.
-                  </p>
-                </div>
-                <div style={{
-                  width: '20px', height: '20px', borderRadius: '50%',
-                  border: `2px solid ${paymentMethod === 'cod' ? 'var(--primary)' : 'var(--border)'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: paymentMethod === 'cod' ? 'var(--primary)' : 'transparent'
-                }}>
-                  {paymentMethod === 'cod' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} />}
-                </div>
-              </div>
-
-              <div
-                onClick={() => setPaymentMethod('qris')}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '1rem',
-                  padding: '1.25rem',
-                  background: paymentMethod === 'qris' ? 'rgba(var(--primary-rgb), 0.08)' : 'var(--card)',
-                  border: paymentMethod === 'qris' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                  borderRadius: '16px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  position: 'relative'
-                }}
-              >
-                <div
-                  style={{
-                    width: '48px', height: '48px', borderRadius: '12px',
-                    background: paymentMethod === 'qris' ? 'var(--primary)' : 'var(--surface-2)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: paymentMethod === 'qris' ? 'white' : 'var(--text-muted)',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <CheckCircle size={24} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.125rem' }}>Pembayaran Otomatis</p>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                    QRIS, GoPay, ShopeePay, & Virtual Account.
-                  </p>
-                </div>
-                <div style={{
-                  width: '20px', height: '20px', borderRadius: '50%',
-                  border: `2px solid ${paymentMethod === 'qris' ? 'var(--primary)' : 'var(--border)'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: paymentMethod === 'qris' ? 'var(--primary)' : 'transparent'
-                }}>
-                  {paymentMethod === 'qris' && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'white' }} />}
-                </div>
-              </div>
+        {/* 4. Rincian Pembayaran & Submit */}
+        <div className="card" style={{ padding: '1.5rem', background: 'var(--surface-2)', marginTop: '0.5rem', border: '1px solid var(--border)', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Subtotal Produk</span>
+              <span>{formatRupiah(totalPrice)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+              <span style={{ color: 'var(--text-secondary)' }}>Subtotal Pengiriman</span>
+              <span style={{ color: 'var(--success)' }}>Gratis (COD)</span>
+            </div>
+            <div className="divider" style={{ margin: '0.5rem 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 600 }}>Total Pembayaran</span>
+              <span style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '1.5rem', fontFamily: 'Outfit, sans-serif' }}>
+                {formatRupiah(totalPrice)}
+              </span>
             </div>
           </div>
 
-          {/* Submit - Mobile */}
           <button
             type="submit"
             className="btn btn-primary btn-lg"
             disabled={loading}
-            style={{ display: 'none' }}
-            id="submit-checkout"
+            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', fontWeight: 700 }}
           >
-            {loading ? 'Memproses...' : 'Buat Pesanan'}
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                <svg className="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.3" />
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                </svg>
+                Memproses Pesanan...
+              </span>
+            ) : (
+              paymentMethod === 'cod' ? 'Buat Pesanan Sekarang' : 'Buat Pesanan & Bayar'
+            )}
           </button>
-        </form>
-
-        {/* Right: Order Summary */}
-        <div style={{ position: 'sticky', top: '80px', flexShrink: 0 }} className="w-full md:w-[360px]">
-          <div className="card" style={{ padding: '1.5rem' }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShoppingBag size={18} color="var(--primary)" />
-              Ringkasan Pesanan
-            </h2>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', marginBottom: '1.25rem' }}>
-              {selectedItems.map((item) => (
-                <div key={item.product.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                  <div
-                    style={{
-                      width: '52px', height: '52px', borderRadius: '8px',
-                      background: 'var(--surface-2)', overflow: 'hidden',
-                      flexShrink: 0, position: 'relative',
-                    }}
-                  >
-                    {item.product.image_url && !imgErrors[item.product.id] ? (
-                      <Image
-                        src={item.product.image_url}
-                        alt={item.product.name}
-                        fill style={{ objectFit: 'cover' }}
-                        sizes="52px"
-                        onError={() => setImgErrors(prev => ({ ...prev, [item.product.id]: true }))}
-                      />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                        <ImageOff size={16} strokeWidth={1.5} />
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '0.825rem', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.product.name}
-                    </p>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      {item.quantity}x · {formatRupiah(item.product.price)}
-                    </p>
-                  </div>
-                  <p style={{ fontSize: '0.875rem', fontWeight: 600, flexShrink: 0 }}>
-                    {formatRupiah(item.product.price * item.quantity)}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <div className="divider" />
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Subtotal</span>
-                <span>{formatRupiah(totalPrice)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                <span style={{ color: 'var(--text-secondary)' }}>Ongkos Kirim</span>
-                <span style={{ color: 'var(--success)' }}>COD</span>
-              </div>
-              <div className="divider" style={{ margin: '0.25rem 0' }} />
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
-                <span>Total</span>
-                <span style={{ color: 'var(--primary)', fontFamily: 'Outfit, sans-serif', fontSize: '1.15rem' }}>
-                  {formatRupiah(totalPrice)}
-                </span>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              form="checkout-form"
-              className="btn btn-primary btn-lg"
-              disabled={loading}
-              style={{ width: '100%' }}
-            >
-              {loading ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.3" />
-                    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                  </svg>
-                  Memproses Pesanan...
-                </span>
-              ) : (
-                <>
-                  <CheckCircle size={18} />
-                  {paymentMethod === 'cod' ? 'Buat Pesanan — COD' : 'Bayar Sekarang'}
-                </>
-              )}
-            </button>
-          </div>
         </div>
-      </div>
+      </form>
     </div>
   )
 }
