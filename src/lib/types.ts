@@ -14,6 +14,12 @@ export interface Profile {
   updated_at: string
 }
 
+export interface ProductVariant {
+  name: string
+  price: number
+  stock: number
+}
+
 export interface Product {
   id: string
   name: string
@@ -27,6 +33,9 @@ export interface Product {
   sales_count: number
   avg_rating?: number
   review_count?: number
+  is_preorder?: boolean
+  preorder_days?: number
+  variants?: ProductVariant[]
   created_at: string
   updated_at: string
 }
@@ -62,7 +71,9 @@ export interface OrderItem {
 
 // Cart types (local state, tidak disimpan di DB)
 export interface CartItem {
+  id: string // Format: productId or productId_variantName
   product: Product
+  variant?: ProductVariant
   quantity: number
   selected?: boolean
 }

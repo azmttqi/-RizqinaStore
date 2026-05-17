@@ -113,8 +113,13 @@ export default async function ProductDetailPage(props: { params: Promise<{ id: s
           {/* Product Info Section */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                 <span className="badge badge-primary">UMKM Pilihan</span>
+                {product.is_preorder && (
+                  <span className="badge" style={{ background: 'var(--primary)', color: 'white' }}>
+                    📦 Pre-Order (PO: {product.preorder_days || 7} Hari)
+                  </span>
+                )}
               </div>
               
               <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.2rem)', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
@@ -132,10 +137,6 @@ export default async function ProductDetailPage(props: { params: Promise<{ id: s
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                   Terjual <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{product.sales_count}</span>
                 </span>
-              </div>
-
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '1.5rem' }}>
-                {formatRupiah(product.price)}
               </div>
             </div>
 

@@ -19,11 +19,13 @@ export default function InventoryManager({ product }: Props) {
     e.preventDefault()
     setLoading(true)
 
-    const formData = new FormData(e.currentTarget)
+    const formElement = e.currentTarget
+    const formData = new FormData(formElement)
     const quantity = parseInt(formData.get('quantity') as string)
     const costPrice = parseFloat(formData.get('cost_price') as string)
     const type = formData.get('type') as 'IN' | 'OUT' | 'ADJUSTMENT'
     const note = formData.get('note') as string
+    const variantName = formData.get('variant_name') as string | null
 
     try {
       const result = await addInventoryLogAction({
@@ -31,13 +33,14 @@ export default function InventoryManager({ product }: Props) {
         type,
         quantity,
         costPrice: type === 'IN' ? costPrice : undefined,
-        note
+        note,
+        variantName: variantName || undefined
       })
 
       if (result.success) {
+        formElement.reset()
         toast.success(`Berhasil mencatat ${type === 'IN' ? 'barang masuk' : 'perubahan'} stok!`)
         router.refresh()
-        e.currentTarget.reset()
       } else {
         toast.error(result.error)
       }
@@ -56,6 +59,20 @@ export default function InventoryManager({ product }: Props) {
       </h3>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {product.variants && product.variants.length > 0 && (
+          <div className="form-group">
+            <label>Pilih Varian *</label>
+            <select name="variant_name" className="input" required>
+              <option value="">-- Pilih Varian --</option>
+              {product.variants.map((v) => (
+                <option key={v.name} value={v.name}>
+                  {v.name} (Stok: {v.stock})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="form-group">
           <label>Tipe Pergerakan</label>
           <select name="type" className="input" defaultValue="IN">

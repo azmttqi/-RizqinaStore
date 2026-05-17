@@ -9,8 +9,13 @@ export async function addInventoryLogAction(data: {
   quantity: number;
   costPrice?: number;
   note?: string;
+  variantName?: string;
 }) {
   const supabase = await createClient()
+
+  const fullNote = data.variantName 
+    ? `[Varian: ${data.variantName}] ${data.note || ''}`.trim() 
+    : data.note || ''
 
   // 1. Simpan log riwayat
   const { error: logError } = await supabase
@@ -20,7 +25,7 @@ export async function addInventoryLogAction(data: {
       type: data.type,
       quantity: data.quantity,
       cost_price: data.costPrice,
-      note: data.note
+      note: fullNote || null
     })
 
   if (logError) {
@@ -28,10 +33,10 @@ export async function addInventoryLogAction(data: {
     return { success: false, error: 'Gagal mencatat riwayat inventori.' }
   }
 
-  // 2. Ambil stok saat ini untuk dikalkulasi
+  // 2. Ambil stok saat ini dan variants untuk dikalkulasi
   const { data: product, error: fetchError } = await supabase
     .from('products')
-    .select('stock')
+    .select('stock, variants')
     .eq('id', data.productId)
     .single()
 
@@ -46,8 +51,28 @@ export async function addInventoryLogAction(data: {
     newStock = product.stock - data.quantity
   }
 
-  // 4. Update tabel produk (Stok & Harga Modal terbaru jika ada)
   const updateData: any = { stock: newStock }
+
+  // 3.b Kalkulasi stok varian jika ada variantName
+  if (data.variantName && product.variants && Array.isArray(product.variants)) {
+    const updatedVariants = product.variants.map((v: any) => {
+      if (v.name === data.variantName) {
+        let newVariantStock = v.stock + data.quantity
+        if (data.type === 'OUT' && data.quantity > 0) {
+          newVariantStock = v.stock - data.quantity
+        }
+        return { ...v, stock: newVariantStock }
+      }
+      return v
+    })
+    
+    // Recalculate total stock from variants just to be safe
+    newStock = updatedVariants.reduce((acc: number, v: any) => acc + (v.stock || 0), 0)
+    updateData.stock = newStock
+    updateData.variants = updatedVariants
+  }
+
+  // 4. Update tabel produk (Stok & Harga Modal terbaru jika ada)
   if (data.costPrice) {
     updateData.original_price = data.costPrice
   }

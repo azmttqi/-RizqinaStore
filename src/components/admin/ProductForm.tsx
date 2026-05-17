@@ -2,9 +2,9 @@
 
 import { useState, useRef } from 'react'
 import { createProduct, updateProduct } from '@/lib/actions/products'
-import { Product } from '@/lib/types'
+import { Product, ProductVariant } from '@/lib/types'
 import { formatRupiah } from '@/lib/utils'
-import { Upload, X, ImageIcon, ArrowLeft, Database, History } from 'lucide-react'
+import { Upload, X, ImageIcon, ArrowLeft, Database, History, Plus, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -18,6 +18,8 @@ export default function ProductForm({ product, isEdit }: ProductFormProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(product?.image_url || null)
   const [isDragging, setIsDragging] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [isPreorder, setIsPreorder] = useState(product?.is_preorder || false)
+  const [variants, setVariants] = useState<ProductVariant[]>(product?.variants || [])
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleFileSelect(file: File) {
@@ -39,6 +41,7 @@ export default function ProductForm({ product, isEdit }: ProductFormProps) {
 
     try {
       const formData = new FormData(e.currentTarget)
+      formData.append('variants', JSON.stringify(variants))
 
       if (isEdit && product) {
         await updateProduct(product.id, formData)
@@ -272,7 +275,77 @@ export default function ProductForm({ product, isEdit }: ProductFormProps) {
               </div>
             </div>
           )}
+          {/* Varian Section */}
+          <div className="form-group" style={{ padding: '1.5rem', background: 'var(--surface-2)', borderRadius: '12px', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.95rem' }}>Kelola Varian Produk (Opsional)</label>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Tambahkan jika produk punya rasa/ukuran beda. Harga utama akan diabaikan.</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => setVariants([...variants, { name: '', price: 0, stock: 0 }])}
+              >
+                <Plus size={16} /> Tambah Varian
+              </button>
+            </div>
 
+            {variants.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {variants.map((v, i) => (
+                  <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr auto', gap: '0.75rem', alignItems: 'center' }}>
+                    <input
+                      className="input"
+                      placeholder="Nama (misal: Pedas)"
+                      value={v.name}
+                      onChange={(e) => {
+                        const newV = [...variants]
+                        newV[i].name = e.target.value
+                        setVariants(newV)
+                      }}
+                      required
+                    />
+                    <input
+                      type="number"
+                      className="input"
+                      placeholder="Harga"
+                      value={v.price}
+                      min="0"
+                      step="500"
+                      onChange={(e) => {
+                        const newV = [...variants]
+                        newV[i].price = parseFloat(e.target.value) || 0
+                        setVariants(newV)
+                      }}
+                      required
+                    />
+                    <input
+                      type="number"
+                      className="input"
+                      placeholder="Stok"
+                      value={v.stock}
+                      min="0"
+                      onChange={(e) => {
+                        const newV = [...variants]
+                        newV[i].stock = parseInt(e.target.value) || 0
+                        setVariants(newV)
+                      }}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      style={{ color: 'var(--danger)', padding: '0.5rem' }}
+                      onClick={() => setVariants(variants.filter((_, idx) => idx !== i))}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="form-group">
             <label htmlFor="is_active">Status Produk</label>
             <select
@@ -284,6 +357,41 @@ export default function ProductForm({ product, isEdit }: ProductFormProps) {
               <option value="true">Aktif (tampil di toko)</option>
               <option value="false">Nonaktif (disembunyikan)</option>
             </select>
+          </div>
+
+          {/* Pre-Order Section */}
+          <div className="form-group" style={{ marginTop: '1rem', padding: '1rem', background: 'var(--surface-2)', borderRadius: '12px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', marginBottom: isPreorder ? '1rem' : 0 }}>
+              <input
+                type="checkbox"
+                name="is_preorder"
+                checked={isPreorder}
+                onChange={(e) => setIsPreorder(e.target.checked)}
+                style={{ width: '1.25rem', height: '1.25rem' }}
+                value="true"
+              />
+              <span style={{ fontWeight: 600 }}>Jadikan Produk Pre-Order (PO)</span>
+            </label>
+
+            {isPreorder && (
+              <div className="form-group animate-fade-in" style={{ marginLeft: '2rem' }}>
+                <label htmlFor="preorder_days">Waktu Pre-Order (Hari) *</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    id="preorder_days"
+                    name="preorder_days"
+                    type="number"
+                    className="input"
+                    placeholder="7"
+                    defaultValue={product?.preorder_days || 7}
+                    min="1"
+                    required={isPreorder}
+                    style={{ maxWidth: '120px' }}
+                  />
+                  <span style={{ color: 'var(--text-muted)' }}>Hari kalender</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

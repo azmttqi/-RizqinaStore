@@ -4,26 +4,30 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Product } from '@/lib/types'
-import { useCartStore } from '@/lib/store/cartStore'
 import { formatRupiah } from '@/lib/utils'
-import { ShoppingCart, Package, ImageOff, Star } from 'lucide-react'
-import { toast } from 'sonner'
-
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { Package, ImageOff, Star } from 'lucide-react'
 
 interface ProductCardProps {
   product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const { addItem } = useCartStore()
   const [imageError, setImageError] = useState(false)
-  const supabase = createClient()
-  const router = useRouter()
+
+  const hasVariants = product.variants && product.variants.length > 0
+  const isOutOfStock = hasVariants
+    ? product.variants!.every((v) => v.stock === 0)
+    : product.stock === 0
+
+  const minPrice = hasVariants ? Math.min(...product.variants!.map(v => v.price)) : product.price
+  const maxPrice = hasVariants ? Math.max(...product.variants!.map(v => v.price)) : product.price
+  
+  const displayPrice = hasVariants && minPrice !== maxPrice
+    ? `${formatRupiah(minPrice)} - ${formatRupiah(maxPrice)}`
+    : formatRupiah(minPrice)
 
   const stockLevel =
-    product.stock === 0 ? 'out' :
+    isOutOfStock ? 'out' :
     product.stock <= 5 ? 'low' :
     product.stock <= 20 ? 'medium' : 'high'
 
@@ -36,26 +40,6 @@ export default function ProductCard({ product }: ProductCardProps) {
     stockLevel === 'out' ? 'var(--danger-light)' :
     stockLevel === 'low' ? 'var(--danger-light)' :
     stockLevel === 'medium' ? 'var(--warning-light)' : 'var(--success-light)'
-
-  async function handleAddToCart() {
-    // Cek status login
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      toast.error('Silakan daftar atau login terlebih dahulu untuk belanja.')
-      router.push('/login')
-      return
-    }
-
-    if (product.stock === 0) {
-      toast.error('Stok habis!')
-      return
-    }
-    addItem(product)
-    toast.success(`${product.name} ditambahkan ke keranjang!`, {
-      icon: '🛒',
-    })
-  }
 
   return (
     <div
@@ -104,6 +88,26 @@ export default function ProductCard({ product }: ProductCardProps) {
             >
               <ImageOff size={32} strokeWidth={1.5} />
               <span style={{ fontSize: '0.75rem' }}>No Image</span>
+            </div>
+          )}
+
+          {/* Pre-Order Badge */}
+          {product.is_preorder && (
+            <div
+              style={{
+                position: 'absolute', top: '0.625rem', left: '0.625rem',
+                background: 'var(--primary)',
+                color: 'white',
+                borderRadius: '99px',
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                padding: '0.2rem 0.5rem',
+                display: 'flex', alignItems: 'center', gap: '0.25rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                zIndex: 10,
+              }}
+            >
+              PRE-ORDER
             </div>
           )}
 
@@ -169,22 +173,11 @@ export default function ProductCard({ product }: ProductCardProps) {
               fontWeight: 700,
               color: 'var(--primary)',
               fontFamily: 'Outfit, sans-serif',
-              marginBottom: '0.5rem',
+              fontSize: hasVariants ? '0.85rem' : '1rem',
             }}
           >
-            {formatRupiah(product.price)}
+            {displayPrice}
           </p>
-
-          <button
-            onClick={handleAddToCart}
-            disabled={product.stock === 0}
-            className="btn btn-primary btn-sm"
-            style={{ width: '100%', padding: '0.5rem' }}
-          >
-            <ShoppingCart size={14} />
-            <span className="md-inline">{product.stock === 0 ? 'Habis' : 'Beli'}</span>
-            <span className="md-hidden">{product.stock === 0 ? 'Habis' : '+ Keranjang'}</span>
-          </button>
         </div>
       </div>
     </div>

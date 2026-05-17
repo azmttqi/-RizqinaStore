@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { formatRupiah, generateWAMessage, getWhatsAppURL } from '@/lib/utils'
-import { CheckCircle2, MessageCircle, Package, ArrowLeft, Clock } from 'lucide-react'
+import { CheckCircle2, MessageCircle, Package, ArrowLeft, Clock, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import ConfirmDeliveryButton from '@/components/ConfirmDeliveryButton'
@@ -81,7 +81,33 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   }
   const currentStatus = statusLabels[order.order_status] || statusLabels.pending
 
-  const isPendingMidtrans = order.payment_method !== 'cod' && order.payment_status === 'pending'
+  const isFailed = order.order_status === 'cancelled' || ['failed', 'expire', 'cancel', 'deny'].includes(order.payment_status)
+  const isPendingMidtrans = !isFailed && order.payment_method !== 'cod' && order.payment_status === 'pending'
+  const isSuccess = !isFailed && !isPendingMidtrans
+
+  const getBackground = () => {
+    if (isFailed) return 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(220, 53, 69, 0.08) 0%, transparent 60%), var(--background)'
+    if (isPendingMidtrans) return 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 60%), var(--background)'
+    return 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 60%), var(--background)'
+  }
+
+  const getIconContainerStyle = () => {
+    if (isFailed) return {
+      background: 'rgba(220, 53, 69, 0.1)',
+      border: '1px solid rgba(220, 53, 69, 0.2)',
+      boxShadow: '0 0 40px rgba(220, 53, 69, 0.15)'
+    }
+    if (isPendingMidtrans) return {
+      background: 'rgba(245, 158, 11, 0.1)',
+      border: '1px solid rgba(245, 158, 11, 0.2)',
+      boxShadow: '0 0 40px rgba(245, 158, 11, 0.15)'
+    }
+    return {
+      background: 'rgba(16, 185, 129, 0.1)',
+      border: '1px solid rgba(16, 185, 129, 0.2)',
+      boxShadow: '0 0 40px rgba(16, 185, 129, 0.15)'
+    }
+  }
 
   return (
     <div
@@ -91,9 +117,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '2rem 1.5rem',
-        background: isPendingMidtrans 
-          ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245, 158, 11, 0.08) 0%, transparent 60%), var(--background)'
-          : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 60%), var(--background)',
+        background: getBackground(),
       }}
     >
       <div style={{ width: '100%', maxWidth: '560px', animationDelay: '0s' }} className="animate-fade-in">
@@ -103,26 +127,28 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
             style={{
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
               width: '88px', height: '88px', borderRadius: '50%',
-              background: isPendingMidtrans ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-              border: isPendingMidtrans ? '1px solid rgba(245, 158, 11, 0.2)' : '1px solid rgba(16, 185, 129, 0.2)',
               marginBottom: '1.5rem',
-              boxShadow: isPendingMidtrans ? '0 0 40px rgba(245, 158, 11, 0.15)' : '0 0 40px rgba(16, 185, 129, 0.15)',
               position: 'relative',
+              ...getIconContainerStyle()
             }}
           >
-            {isPendingMidtrans ? (
+            {isFailed ? (
+              <XCircle size={44} color="var(--danger)" strokeWidth={2.5} />
+            ) : isPendingMidtrans ? (
               <Clock size={44} color="var(--warning)" strokeWidth={2.5} />
             ) : (
               <CheckCircle2 size={44} color="var(--success)" strokeWidth={2.5} />
             )}
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '0.75rem', fontFamily: 'Outfit, sans-serif', letterSpacing: '-0.02em' }}>
-            {isPendingMidtrans ? 'Menunggu Pembayaran' : 'Pesanan Berhasil'}
+            {isFailed ? 'Pesanan Gagal' : isPendingMidtrans ? 'Menunggu Pembayaran' : 'Pesanan Berhasil'}
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', maxWidth: '400px', margin: '0 auto' }}>
-            {isPendingMidtrans 
-              ? `Halo ${order.consumer_name}, pesanan Anda sudah tersimpan. Silakan selesaikan pembayaran agar kami dapat memprosesnya.`
-              : `Terima kasih, ${order.consumer_name}. Pesanan Anda telah kami terima dan sedang diproses.`
+            {isFailed
+              ? `Mohon maaf ${order.consumer_name}, pesanan Anda telah dibatalkan atau waktu pembayaran telah habis.`
+              : isPendingMidtrans 
+                ? `Halo ${order.consumer_name}, pesanan Anda sudah tersimpan. Silakan selesaikan pembayaran agar kami dapat memprosesnya.`
+                : `Terima kasih, ${order.consumer_name}. Pesanan Anda telah kami terima dan sedang diproses.`
             }
           </p>
         </div>

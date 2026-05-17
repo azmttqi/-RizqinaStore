@@ -39,11 +39,17 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
   const productIds = data.items.map((item) => item.product.id)
   const { data: latestProducts, error: stockError } = await supabase
     .from('products')
-    .select('id, name, stock, price, is_active')
+    .select('id, name, stock, price, is_active, variants')
     .in('id', productIds)
 
   if (stockError || !latestProducts) {
     return { success: false, error: 'Gagal memverifikasi stok produk.' }
+  }
+
+  // Helper to find variant
+  const getVariant = (product: any, variantName?: string) => {
+    if (!variantName || !product.variants) return null
+    return product.variants.find((v: any) => v.name === variantName)
   }
 
   // 4. Validasi setiap item
@@ -58,10 +64,14 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
       return { success: false, error: `Produk "${freshProduct.name}" sudah tidak tersedia.` }
     }
 
-    if (freshProduct.stock < cartItem.quantity) {
+    const variant = getVariant(freshProduct, cartItem.variant?.name)
+    const stockAvailable = variant ? variant.stock : freshProduct.stock
+    const productName = variant ? `${freshProduct.name} (${variant.name})` : freshProduct.name
+
+    if (stockAvailable < cartItem.quantity) {
       return {
         success: false,
-        error: `Stok "${freshProduct.name}" tidak mencukupi. Tersisa: ${freshProduct.stock} item.`,
+        error: `Stok "${productName}" tidak mencukupi. Tersisa: ${stockAvailable} item.`,
       }
     }
   }
@@ -69,7 +79,9 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
   // 5. Hitung total dengan harga terkini dari DB
   const totalAmount = data.items.reduce((total, cartItem) => {
     const freshProduct = latestProducts.find((p) => p.id === cartItem.product.id)!
-    return total + freshProduct.price * cartItem.quantity
+    const variant = getVariant(freshProduct, cartItem.variant?.name)
+    const price = variant ? variant.price : freshProduct.price
+    return total + price * cartItem.quantity
   }, 0)
 
   // 6. Buat order di database
@@ -97,12 +109,14 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
   // 7. Insert order items
   const orderItems = data.items.map((cartItem) => {
     const freshProduct = latestProducts.find((p) => p.id === cartItem.product.id)!
+    const variant = getVariant(freshProduct, cartItem.variant?.name)
+    
     return {
       order_id: order.id,
       product_id: cartItem.product.id,
       quantity: cartItem.quantity,
-      price_snapshot: freshProduct.price,
-      product_name_snapshot: freshProduct.name,
+      price_snapshot: variant ? variant.price : freshProduct.price,
+      product_name_snapshot: variant ? `${freshProduct.name} (${variant.name})` : freshProduct.name,
     }
   })
 
@@ -123,25 +137,29 @@ export async function checkoutAction(data: CheckoutData): Promise<CheckoutResult
   for (const cartItem of data.items) {
     const freshProduct = latestProducts.find((p) => p.id === cartItem.product.id)!
     
-    // Coba via RPC dulu
-    const { error: rpcError } = await adminSupabase.rpc('decrement_stock', {
-      product_id: cartItem.product.id,
-      qty: cartItem.quantity,
-    })
+    if (cartItem.variant) {
+      // Update stok varian di dalam JSONB array
+      const newVariants = freshProduct.variants.map((v: any) => {
+        if (v.name === cartItem.variant!.name) {
+          return { ...v, stock: Math.max(0, v.stock - cartItem.quantity) }
+        }
+        return v
+      })
+      await adminSupabase.from('products').update({ variants: newVariants }).eq('id', cartItem.product.id)
+    } else {
+      // Coba via RPC dulu untuk base product
+      const { error: rpcError } = await adminSupabase.rpc('decrement_stock', {
+        product_id: cartItem.product.id,
+        qty: cartItem.quantity,
+      })
 
-    if (rpcError) {
-      console.warn('RPC decrement_stock failed, falling back to manual update:', rpcError.message)
-      
-      // Fallback: update langsung via admin client
-      const { error: manualError } = await adminSupabase
-        .from('products')
-        .update({ stock: freshProduct.stock - cartItem.quantity })
-        .eq('id', cartItem.product.id)
-
-      if (manualError) {
-        console.error('Manual stock update failed:', manualError)
-        // Kita tidak batalkan order jika stok gagal update (untuk menghindari kegagalan total), 
-        // tapi log ini sangat penting untuk admin.
+      if (rpcError) {
+        console.warn('RPC decrement_stock failed, falling back to manual update:', rpcError.message)
+        // Fallback: update langsung via admin client
+        await adminSupabase
+          .from('products')
+          .update({ stock: freshProduct.stock - cartItem.quantity })
+          .eq('id', cartItem.product.id)
       }
     }
   }

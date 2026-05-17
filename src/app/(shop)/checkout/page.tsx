@@ -179,29 +179,33 @@ export default function CheckoutPage() {
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '2rem 1.5rem 4rem' }}>
       {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <Link
-          href="/"
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-            color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.875rem',
-            marginBottom: '1rem',
-          }}
-        >
-          <ArrowLeft size={16} />
-          Kembali ke Toko
-        </Link>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Checkout</h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-          Lengkapi data pengiriman Anda
-        </p>
-      </div>
+      {!showEmbed && (
+        <div style={{ marginBottom: '2rem' }}>
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+              color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.875rem',
+              marginBottom: '1rem',
+            }}
+          >
+            <ArrowLeft size={16} />
+            Kembali ke Toko
+          </Link>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Checkout</h1>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+            Lengkapi data pengiriman Anda
+          </p>
+        </div>
+      )}
 
       {/* Form Container (Satu Kolom ala Shopee) */}
       <form id="checkout-form" onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
         
-        {/* 1. Alamat Pengiriman & Info Konsumen */}
-        <div className="card" style={{ padding: '1.5rem', borderTop: '4px solid var(--primary)' }}>
+        {!showEmbed && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }} className="animate-fade-in">
+            {/* 1. Alamat Pengiriman & Info Konsumen */}
+            <div className="card" style={{ padding: '1.5rem', borderTop: '4px solid var(--primary)' }}>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
             <MapPin size={20} />
             Alamat Pengiriman
@@ -247,30 +251,40 @@ export default function CheckoutPage() {
             Produk Dipesan
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {selectedItems.map((item) => (
-              <div key={item.product.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px dashed var(--border)' }}>
-                <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'var(--surface-2)', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
-                  {item.product.image_url && !imgErrors[item.product.id] ? (
-                    <Image
-                      src={item.product.image_url} alt={item.product.name} fill style={{ objectFit: 'cover' }}
-                      sizes="60px" onError={() => setImgErrors(prev => ({ ...prev, [item.product.id]: true }))}
-                    />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
-                      <ImageOff size={16} strokeWidth={1.5} />
-                    </div>
-                  )}
+            {selectedItems.map((item) => {
+              const itemPrice = item.variant ? item.variant.price : item.product.price
+              return (
+                <div key={item.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px dashed var(--border)' }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'var(--surface-2)', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+                    {item.product.image_url && !imgErrors[item.product.id] ? (
+                      <Image
+                        src={item.product.image_url} alt={item.product.name} fill style={{ objectFit: 'cover' }}
+                        sizes="60px" onError={() => setImgErrors(prev => ({ ...prev, [item.product.id]: true }))}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                        <ImageOff size={16} strokeWidth={1.5} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>
+                      {item.product.name} {item.variant && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>({item.variant.name})</span>}
+                      {item.product.is_preorder && (
+                        <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)', marginLeft: '0.5rem', fontSize: '0.7rem', padding: '0.1rem 0.4rem' }}>
+                          PO {item.product.preorder_days || 7} Hari
+                        </span>
+                      )}
+                    </p>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{formatRupiah(itemPrice)}</p>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>x{item.quantity}</p>
+                    <p style={{ fontSize: '0.95rem', fontWeight: 600, marginTop: '0.25rem' }}>{formatRupiah(itemPrice * item.quantity)}</p>
+                  </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>{item.product.name}</p>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{formatRupiah(item.product.price)}</p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>x{item.quantity}</p>
-                  <p style={{ fontSize: '0.95rem', fontWeight: 600, marginTop: '0.25rem' }}>{formatRupiah(item.product.price * item.quantity)}</p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="form-group" style={{ marginTop: '1rem' }}>
@@ -366,12 +380,14 @@ export default function CheckoutPage() {
             </div>
           )}
         </div>
+      </div>
+      )}
 
         {/* 4. Rincian Pembayaran / Midtrans Embed */}
         {showEmbed ? (
           <div className="card animate-fade-in" style={{ padding: '1.5rem', background: 'var(--surface-2)', marginTop: '0.5rem', border: '1px solid var(--border)', borderRadius: '12px' }}>
             <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', fontWeight: 600, fontSize: '1.1rem' }}>
-              Pilih Pembayaran Anda
+              Selesaikan Pembayaran
             </h3>
             <div id="snap-container" style={{ width: '100%', minHeight: '500px', borderRadius: '8px', overflow: 'hidden' }}></div>
           </div>

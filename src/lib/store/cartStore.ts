@@ -1,16 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { CartItem, Product } from '@/lib/types'
+import { CartItem, Product, ProductVariant } from '@/lib/types'
 
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
 
   // Actions
-  addItem: (product: Product, quantity?: number) => void
-  removeItem: (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
-  toggleItemSelection: (productId: string) => void
+  addItem: (product: Product, quantity?: number, variant?: ProductVariant) => void
+  removeItem: (itemId: string) => void
+  updateQuantity: (itemId: string, quantity: number) => void
+  toggleItemSelection: (itemId: string) => void
   toggleAllSelection: (selected: boolean) => void
   setItems: (items: CartItem[]) => void
   clearCart: () => void
@@ -31,61 +31,70 @@ export const useCartStore = create<CartStore>()(
       items: [],
       isOpen: false,
 
-      addItem: (product: Product, quantity = 1) => {
+      addItem: (product: Product, quantity = 1, variant?: ProductVariant) => {
         set((state) => {
+          const itemId = variant ? `${product.id}_${variant.name}` : product.id
+          const stockAvailable = variant ? variant.stock : product.stock
+
           const existingItem = state.items.find(
-            (item) => item.product.id === product.id
+            (item) => (item.id || item.product.id) === itemId
           )
 
           if (existingItem) {
-            // Update quantity, tapi tidak melebihi stok
             const newQty = Math.min(
               existingItem.quantity + quantity,
-              product.stock
+              stockAvailable
             )
             return {
               items: state.items.map((item) =>
-                item.product.id === product.id
+                (item.id || item.product.id) === itemId
                   ? { ...item, quantity: newQty, selected: true }
                   : item
               ),
             }
           }
 
-          // Tambah item baru
           return {
             items: [
               ...state.items,
-              { product, quantity: Math.min(quantity, product.stock), selected: true },
+              { 
+                id: itemId,
+                product, 
+                variant,
+                quantity: Math.min(quantity, stockAvailable), 
+                selected: true 
+              },
             ],
           }
         })
       },
 
-      removeItem: (productId: string) => {
+      removeItem: (itemId: string) => {
         set((state) => ({
-          items: state.items.filter((item) => item.product.id !== productId),
+          items: state.items.filter((item) => (item.id || item.product.id) !== itemId),
         }))
       },
 
-      updateQuantity: (productId: string, quantity: number) => {
+      updateQuantity: (itemId: string, quantity: number) => {
         if (quantity <= 0) {
-          get().removeItem(productId)
+          get().removeItem(itemId)
           return
         }
         set((state) => ({
-          items: state.items.map((item) =>
-            item.product.id === productId
-              ? { ...item, quantity: Math.min(quantity, item.product.stock) }
-              : item
-          ),
+          items: state.items.map((item) => {
+            if ((item.id || item.product.id) === itemId) {
+              const stockAvailable = item.variant ? item.variant.stock : item.product.stock
+              return { ...item, quantity: Math.min(quantity, stockAvailable) }
+            }
+            return item
+          }),
         }))
       },
 
-      toggleItemSelection: (productId: string) => {
+      toggleItemSelection: (itemId: string) => {
         set((state) => ({
           items: state.items.map((item) =>
-            item.product.id === productId
+            (item.id || item.product.id) === itemId
               ? { ...item, selected: item.selected === false ? true : false }
               : item
           ),
@@ -118,7 +127,13 @@ export const useCartStore = create<CartStore>()(
 
       getTotalPrice: () => {
         return get().items.reduce(
-          (total, item) => item.selected !== false ? total + item.product.price * item.quantity : total,
+          (total, item) => {
+            if (item.selected !== false) {
+              const price = item.variant ? item.variant.price : item.product.price
+              return total + price * item.quantity
+            }
+            return total
+          },
           0
         )
       },
@@ -129,7 +144,6 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'umkm-cart',
-      // Hanya persist items, bukan isOpen
       partialize: (state) => ({ items: state.items }),
     }
   )

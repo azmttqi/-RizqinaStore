@@ -111,9 +111,12 @@ export default function CartDrawer({ profile }: CartDrawerProps) {
                 />
                 <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Pilih Semua</span>
               </div>
-              {items.map((item) => (
+              {items.map((item) => {
+                const itemId = item.id || item.product.id
+                const stockAvailable = item.variant ? item.variant.stock : item.product.stock
+                return (
                 <div
-                  key={item.product.id}
+                  key={itemId}
                   style={{
                     display: 'flex', gap: '0.875rem', alignItems: 'center',
                     background: 'var(--card)',
@@ -125,7 +128,7 @@ export default function CartDrawer({ profile }: CartDrawerProps) {
                   <input 
                     type="checkbox" 
                     checked={item.selected !== false}
-                    onChange={() => toggleItemSelection(item.product.id)}
+                    onChange={() => toggleItemSelection(itemId)}
                     style={{ width: '1.1rem', height: '1.1rem', cursor: 'pointer', accentColor: 'var(--primary)', flexShrink: 0 }}
                   />
                   {/* Image */}
@@ -154,10 +157,17 @@ export default function CartDrawer({ profile }: CartDrawerProps) {
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: '0.875rem', fontWeight: 600, lineHeight: '1.3', marginBottom: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.product.name}
+                      {item.product.name} {item.variant && <span style={{ color: 'var(--text-secondary)', fontWeight: 400 }}>({item.variant.name})</span>}
                     </p>
+                    {item.product.is_preorder && (
+                      <div style={{ marginBottom: '0.25rem' }}>
+                        <span className="badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)', fontSize: '0.65rem', padding: '0.1rem 0.3rem' }}>
+                          PO {item.product.preorder_days || 7} Hari
+                        </span>
+                      </div>
+                    )}
                     <p style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 700, marginBottom: '0.5rem' }}>
-                      {formatRupiah(item.product.price)}
+                      {formatRupiah(item.variant ? item.variant.price : item.product.price)}
                     </p>
 
                     {/* Quantity Controls */}
@@ -170,7 +180,7 @@ export default function CartDrawer({ profile }: CartDrawerProps) {
                         }}
                       >
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(itemId, item.quantity - 1)}
                           className="btn btn-ghost"
                           style={{ padding: '0.25rem', width: '28px', height: '28px', borderRadius: '6px' }}
                         >
@@ -180,27 +190,25 @@ export default function CartDrawer({ profile }: CartDrawerProps) {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          disabled={item.quantity >= item.product.stock}
+                          onClick={() => updateQuantity(itemId, item.quantity + 1)}
+                          disabled={item.quantity >= stockAvailable}
                           className="btn btn-ghost"
                           style={{ padding: '0.25rem', width: '28px', height: '28px', borderRadius: '6px' }}
                         >
                           <Plus size={14} />
                         </button>
                       </div>
-
                       <button
-                        onClick={() => removeItem(item.product.id)}
+                        onClick={() => removeItem(itemId)}
                         className="btn btn-ghost"
                         style={{ padding: '0.25rem', color: 'var(--danger)' }}
-                        aria-label="Hapus item"
                       >
                         <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           )}
         </div>

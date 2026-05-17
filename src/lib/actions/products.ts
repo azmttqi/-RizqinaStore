@@ -65,15 +65,23 @@ export async function createProduct(formData: FormData) {
     imageUrl = publicUrl
   }
 
+  const variants = JSON.parse(formData.get('variants') as string || '[]')
+  const stock = variants.length > 0 
+    ? variants.reduce((acc: number, v: any) => acc + (v.stock || 0), 0)
+    : parseInt(formData.get('stock') as string || '0', 10)
+
   const { error } = await supabase.from('products').insert({
     name: formData.get('name') as string,
     description: formData.get('description') as string || null,
     category: formData.get('category') as string || null,
     price: parseFloat(formData.get('price') as string),
     cost_price: parseFloat(formData.get('cost_price') as string || '0'),
-    stock: parseInt(formData.get('stock') as string, 10),
+    stock,
     image_url: imageUrl,
     is_active: formData.get('is_active') === 'true',
+    is_preorder: formData.get('is_preorder') === 'true',
+    preorder_days: formData.get('is_preorder') === 'true' ? parseInt(formData.get('preorder_days') as string, 10) : 0,
+    variants,
   })
 
   if (error) throw new Error(`Gagal membuat produk: ${error.message}`)
@@ -111,14 +119,22 @@ export async function updateProduct(id: string, formData: FormData) {
     imageUrl = publicUrl
   }
 
+  const variants = JSON.parse(formData.get('variants') as string || '[]')
+  const stock = variants.length > 0 
+    ? variants.reduce((acc: number, v: any) => acc + (v.stock || 0), 0)
+    : parseInt(formData.get('stock') as string || '0', 10)
+
   const updateData: Record<string, unknown> = {
     name: formData.get('name') as string,
     description: formData.get('description') as string || null,
     category: formData.get('category') as string || null,
     price: parseFloat(formData.get('price') as string),
     cost_price: parseFloat(formData.get('cost_price') as string || '0'),
-    stock: parseInt(formData.get('stock') as string, 10),
+    stock,
     is_active: formData.get('is_active') === 'true',
+    is_preorder: formData.get('is_preorder') === 'true',
+    preorder_days: formData.get('is_preorder') === 'true' ? parseInt(formData.get('preorder_days') as string, 10) : 0,
+    variants,
   }
 
   if (imageUrl !== undefined) {
