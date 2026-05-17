@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useCartStore } from '@/lib/store/cartStore'
 import { syncCartToDB, getCartFromDB } from '@/lib/actions/cart'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 
 /**
  * Komponen tak terlihat untuk sinkronisasi keranjang ke DB
@@ -11,6 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 export default function CartSync() {
   const { items, setItems } = useCartStore()
   const supabase = createClient()
+  const router = useRouter()
   const isInitialMount = useRef(true)
   const isSyncingFromDB = useRef(false)
 
@@ -38,12 +40,15 @@ export default function CartSync() {
           const res = await getCartFromDB()
           if (res.items) setItems(res.items)
           isSyncingFromDB.current = false
+          router.refresh()
+        } else if (event === 'SIGNED_OUT') {
+          router.refresh()
         }
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase, setItems])
+  }, [supabase, setItems, router])
 
   // 2. Sync ke DB setiap kali items berubah
   useEffect(() => {
