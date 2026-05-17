@@ -70,12 +70,12 @@ export default function RegisterPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 py-12"
+      className="min-h-screen flex items-center justify-center px-6 py-12 sm:px-8"
       style={{
         background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108, 99, 255, 0.12) 0%, transparent 60%), var(--background)',
       }}
     >
-      <div className="w-full max-w-[520px] animate-fade-in">
+      <div className="w-full max-w-[420px] animate-fade-in my-8">
         {/* Logo */}
         <div className="text-center mb-10">
           <div
@@ -97,7 +97,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Card */}
-        <div className="glass-card" style={{ padding: '2.5rem' }}>
+        <div className="glass-card" style={{ padding: '2rem' }}>
           <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div className="form-group">
               <label htmlFor="fullName" style={{ marginBottom: '0.5rem', fontWeight: 600 }}>Nama Lengkap</label>

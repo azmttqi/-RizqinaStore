@@ -48,12 +48,12 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4"
+      className="min-h-screen flex items-center justify-center px-6 py-12 sm:px-8"
       style={{
         background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(108, 99, 255, 0.12) 0%, transparent 60%), var(--background)',
       }}
     >
-      <div className="w-full max-w-[480px] animate-fade-in">
+      <div className="w-full max-w-[420px] animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-10">
           <div
@@ -75,7 +75,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="glass-card" style={{ padding: '2.5rem' }}>
+        <div className="glass-card" style={{ padding: '2rem' }}>
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
             <div className="form-group">
               <label htmlFor="email" style={{ marginBottom: '0.625rem', fontWeight: 600 }}>Alamat Email</label>
