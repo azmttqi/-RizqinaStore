@@ -58,7 +58,7 @@ export default async function ShopLayout({
           <div>
             <h4 style={{ color: 'var(--text-primary)', marginBottom: '1.25rem', fontSize: '1rem' }}>Hubungi Kami</h4>
             <p style={{ fontSize: '0.9rem' }}>
-              WhatsApp: <a href={`https://wa.me/${settings?.store_whatsapp?.replace(/\D/g, '')}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>{settings?.store_whatsapp || '081234567890'}</a>
+              WhatsApp: <a href={`https://wa.me/${(settings?.store_whatsapp || process.env.ADMIN_WHATSAPP_NUMBER || '6281234567890').replace(/\D/g, '')}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>{settings?.store_whatsapp || process.env.ADMIN_WHATSAPP_NUMBER || '081234567890'}</a>
             </p>
           </div>
 

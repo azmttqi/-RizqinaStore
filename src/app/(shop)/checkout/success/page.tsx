@@ -69,7 +69,7 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
     })),
   })
 
-  const adminWANumber = settings?.store_whatsapp || '6281234567890'
+  const adminWANumber = settings?.store_whatsapp || process.env.ADMIN_WHATSAPP_NUMBER || '6281234567890'
   const waURL = getWhatsAppURL(adminWANumber, waMessage)
 
   const statusLabels: Record<string, { label: string; color: string; bg: string }> = {
