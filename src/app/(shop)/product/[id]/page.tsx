@@ -8,6 +8,7 @@ import AddToCartButton from '@/components/shop/AddToCartButton'
 import ProductShareButton from '@/components/shop/ProductShareButton'
 import ProductReviews, { Review } from '@/components/shop/ProductReviews'
 import { getWhatsAppURL } from '@/lib/utils'
+import { getStoreSettings } from '@/lib/actions/settings'
 import { createClient } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 
@@ -31,9 +32,11 @@ export default async function ProductDetailPage(props: { params: Promise<{ id: s
   const supabase = await createClient()
   let product;
   let reviews: Review[] = [];
+  let settings;
   
   try {
     product = await getProduct(params.id)
+    settings = await getStoreSettings()
     const { data } = await supabase.from('reviews').select('*').eq('product_id', params.id).order('created_at', { ascending: false })
     if (data) reviews = data
   } catch (error) {
@@ -163,7 +166,7 @@ export default async function ProductDetailPage(props: { params: Promise<{ id: s
               <AddToCartButton product={product} size="lg" />
               
               <a 
-                href={getWhatsAppURL('081234567890', `Halo Admin, saya tertarik dengan produk ${product.name}. Apakah stoknya masih tersedia?`)}
+                href={getWhatsAppURL(settings?.store_whatsapp || '081234567890', `Halo Admin, saya tertarik dengan produk ${product.name}. Apakah stoknya masih tersedia?`)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn"
