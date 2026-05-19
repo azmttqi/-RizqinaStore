@@ -16,30 +16,38 @@ export default async function AdminDashboard() {
     { count: totalOrders },
     { count: pendingOrders },
     { data: recentOrders },
-    { data: salesData },
+    { data: salesOrders },
     { data: productsData },
   ] = await Promise.all([
     supabase.from('products').select('*', { count: 'exact', head: true }).eq('is_active', true),
-    supabase.from('orders').select('*', { count: 'exact', head: true }),
-    supabase.from('orders').select('*', { count: 'exact', head: true }).eq('order_status', 'pending'),
+    supabase.from('orders').select('*', { count: 'exact', head: true }).or('payment_method.eq.cod,payment_status.eq.paid'),
+    supabase.from('orders').select('*', { count: 'exact', head: true }).eq('order_status', 'pending').or('payment_method.eq.cod,payment_status.eq.paid'),
     supabase
       .from('orders')
-      .select('id, consumer_name, total_amount, order_status, payment_method, created_at')
+      .select('id, consumer_name, total_amount, order_status, payment_method, payment_status, created_at')
+      .or('payment_method.eq.cod,payment_status.eq.paid')
       .order('created_at', { ascending: false })
       .limit(5),
     supabase
-      .from('order_items')
-      .select('quantity, price_snapshot, product_id, orders!inner(order_status)')
-      .neq('orders.order_status', 'cancelled'),
+      .from('orders')
+      .select('order_items(quantity, price_snapshot, product_id)')
+      .neq('order_status', 'cancelled')
+      .or('payment_method.eq.cod,payment_status.eq.paid'),
     supabase.from('products').select('id, name, price, cost_price, stock'),
   ])
 
-  const totalRevenue = salesData?.reduce((sum, item) => sum + (Number(item.quantity) * Number(item.price_snapshot)), 0) || 0
+  const totalRevenue = salesOrders?.reduce((sum, order) => {
+    const itemsSum = order.order_items?.reduce((s: number, item: any) => s + (Number(item.quantity) * Number(item.price_snapshot)), 0) || 0
+    return sum + itemsSum
+  }, 0) || 0
   
-  const estimatedProfit = salesData?.reduce((sum, item) => {
-    const product = productsData?.find(p => p.id === item.product_id)
-    const costPrice = product?.cost_price || 0
-    return sum + (Number(item.quantity) * (Number(item.price_snapshot) - costPrice))
+  const estimatedProfit = salesOrders?.reduce((sum, order) => {
+    const itemsSum = order.order_items?.reduce((s: number, item: any) => {
+      const product = productsData?.find(p => p.id === item.product_id)
+      const costPrice = product?.cost_price || 0
+      return s + (Number(item.quantity) * (Number(item.price_snapshot) - costPrice))
+    }, 0) || 0
+    return sum + itemsSum
   }, 0) || 0
 
   const lowStockCount = productsData?.filter(p => p.stock < 5).length || 0
